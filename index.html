@@ -946,24 +946,27 @@
     docTouchCurrentY = 0;
   });
 
-  document.addEventListener('DOMContentLoaded', () => {
-    updateTickerText();
-    closePlusMenu(true);
-    resetPin();
-    hideAllScreens();
+document.addEventListener('DOMContentLoaded', () => {
+  updateTickerText();
+  closePlusMenu(true);
+  resetPin();
+  hideAllScreens();
 
-    loadingScreen.classList.remove('hidden');
-    pinScreen.classList.add('hidden');
-    mainScreen.classList.add('hidden');
+  loadingScreen.classList.remove('hidden');
+  pinScreen.classList.add('hidden');
+  mainScreen.classList.add('hidden');
 
-    setTimeout(() => {
-      showPinScreen();
-    }, 2500);
-  });
+  setTimeout(() => {
+    showPinScreen();
+  }, 2500);
+});
+
+</script>
+
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js');
+      navigator.serviceWorker.register('./service-worker.js');
     });
   }
 </script>
