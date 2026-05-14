@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Резерв +</title>
+
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icon.png">
+
+<style>
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    background: #d8d3c2;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+  }
+
+  .page {
+    width: min(629px, 100vw);
+    position: relative;
+    line-height: 0;
+  }
+
+  .screen {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 629 / 1260;
+    overflow: hidden;
+  }
+
+  .screen.document-mode {
+    aspect-ratio: auto;
+    overflow: visible;
+  }
+
+  .main-screen,
+  .plain-screen,
+  .document-screen {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  .main-bg,
+  .plain-screen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .screen.document-mode .document-screen {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .screen.document-mode .document-screen img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .screen.document-mode .nav-area {
+    display: none;
+  }
+
+  .card-area {
+    position: absolute;
+    left: 0%;
+    top: 0%;
+    width: 100%;
+    height: 100%;
+    perspective: 1400px;
+    z-index: 5;
+    cursor: pointer;
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transition: transform .75s cubic-bezier(.2,.7,.2,1);
+  }
+
+  .card.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .face {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .front { transform: rotateY(0deg); }
+  .back  { transform: rotateY(180deg); }
+
+  .card-face-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  .ticker-wrapper {
+    position: absolute;
+    left: 6.2%;
+    width: 87.8%;
+    top: 59.72%;
+    height: 3.0%;
+    z-index: 7;
+    transform-style: preserve-3d;
+    transition: transform .75s cubic-bezier(.2,.7,.2,1);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    pointer-events: none;
+  }
+
+  .ticker-wrapper.flipped {
+    transform: rotateY(180deg);
+  }
+
+  .ticker-bg {
+    position: absolute;
+    inset: 0;
+    background: #6b4b1a;
+    z-index: 1;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .ticker {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-weight: 400;
+    font-size: 9px;
+    letter-spacing: -0.1px;
+    white-space: nowrap;
+    line-height: 1;
+    z-index: 2;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .ticker-track {
+    display: inline-flex;
+    width: max-content;
+    animation: marquee 15s linear infinite;
+  }
+
+  .ticker-text {
+    padding-right: 60px;
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  .nav-area {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 12%;
+    display: flex;
+    z-index: 20;
+  }
+
+  .nav-btn {
+    flex: 1;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .plus-btn {
+    position: absolute;
+    right: 10.5%;
+    bottom: 20.5%;
+    width: 9.5%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    z-index: 40;
+  }
+
+  .plus-menu-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .22s ease;
+  }
+
+  .plus-menu-layer.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .plus-menu-dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.31);
+    opacity: 0;
+    transition: opacity .22s ease;
+    z-index: 0;
+  }
+
+  .plus-menu-layer.show .plus-menu-dim {
+    opacity: 1;
+  }
+
+  .plus-menu-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transform: translateY(7%);
+    transition: transform .30s cubic-bezier(.2,.7,.2,1);
+    z-index: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .plus-menu-layer.show .plus-menu-image {
+    transform: translateY(0);
+  }
+
+  .plus-menu-close {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 68%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .plus-menu-btn {
+    position: absolute;
+    left: 7%;
+    width: 86%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 3;
+  }
+
+  .plus-menu-view {
+    top: 74.2%;
+    height: 6.7%;
+  }
+
+  .plus-menu-pdf {
+    top: 82.0%;
+    height: 6.7%;
+  }
+
+  .plus-menu-refresh {
+    top: 89.8%;
+    height: 6.7%;
+  }
+
+  .document-screen {
+    background: #d8d3c2;
+  }
+
+  .document-screen img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .document-ticker-bg {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7.2%;
+    height: 1.4%;
+    background: #6b4b1a;
+    z-index: 8;
+  }
+
+  .document-ticker {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 7.2%;
+    height: 1.4%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-weight: 400;
+    font-size: 9px;
+    letter-spacing: -0.1px;
+    white-space: nowrap;
+    line-height: 1;
+    z-index: 9;
+    pointer-events: none;
+  }
+
+  .document-ticker .ticker-track {
+    display: inline-flex;
+    width: max-content;
+    animation: marquee 15s linear infinite;
+  }
+
+  .document-ticker .ticker-text {
+    padding-right: 48px;
+  }
+
+  .document-screen .doc-nav-area {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 7.2%;
+    display: flex;
+    z-index: 20;
+  }
+
+  .document-screen .doc-nav-btn {
+    flex: 1;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .update-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    pointer-events: none;
+  }
+
+  .update-layer.show {
+    pointer-events: auto;
+  }
+
+  .update-dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.31);
+    z-index: 0;
+  }
+
+  .update-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .update-confirm-btn {
+    position: absolute;
+    left: 8%;
+    width: 84%;
+    top: 54%;
+    height: 16%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .update-cancel-btn {
+    position: absolute;
+    left: 15%;
+    width: 70%;
+    top: 72%;
+    height: 10%;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+
+  .document-swipe-zone {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 14%;
+    z-index: 50;
+    background: transparent;
+    touch-action: pan-y;
+  }
+
+  .pin-screen {
+    z-index: 300;
+  }
+
+  .pin-dots {
+    position: absolute;
+    top: 32.9%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 18px;
+    z-index: 320;
+  }
+
+  .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    opacity: .9;
+    transition: background .15s ease, opacity .15s ease;
+  }
+
+  .dot.filled {
+    background: #000;
+    opacity: 1;
+  }
+
+  .pin-key {
+    position: absolute;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 321;
+  }
+
+  .k1 { left: 12.5%; top: 40.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k2 { left: 39.7%; top: 40.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k3 { left: 66.9%; top: 40.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+
+  .k4 { left: 12.5%; top: 54.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k5 { left: 39.7%; top: 54.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k6 { left: 66.9%; top: 54.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+
+  .k7 { left: 12.5%; top: 67.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k8 { left: 39.7%; top: 67.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .k9 { left: 66.9%; top: 67.5%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+
+  .k0   { left: 39.7%; top: 81.0%; width: 18.5%; height: 9.6%; border-radius: 50%; }
+  .kdel { left: 72.0%; top: 83.0%; width: 11.0%; height: 6.0%; border-radius: 18px; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="screen" id="screen">
+
+    <div class="main-screen" id="loadingScreen">
+      <img src="golovna.png" alt="Loading screen" class="main-bg">
+    </div>
+
+    <!-- PIN SCREEN -->
+    <div class="main-screen pin-screen hidden" id="pinScreen">
+      <img src="pin_menu.png" alt="PIN Screen" class="main-bg">
+
+      <div class="pin-dots">
+        <div class="dot" id="dot0"></div>
+        <div class="dot" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
+        <div class="dot" id="dot3"></div>
+      </div>
+
+      <button class="pin-key k1" data-num="1" aria-label="1"></button>
+      <button class="pin-key k2" data-num="2" aria-label="2"></button>
+      <button class="pin-key k3" data-num="3" aria-label="3"></button>
+
+      <button class="pin-key k4" data-num="4" aria-label="4"></button>
+      <button class="pin-key k5" data-num="5" aria-label="5"></button>
+      <button class="pin-key k6" data-num="6" aria-label="6"></button>
+
+      <button class="pin-key k7" data-num="7" aria-label="7"></button>
+      <button class="pin-key k8" data-num="8" aria-label="8"></button>
+      <button class="pin-key k9" data-num="9" aria-label="9"></button>
+
+      <button class="pin-key k0" data-num="0" aria-label="0"></button>
+      <button class="pin-key kdel" id="pinDeleteBtn" aria-label="Delete"></button>
+    </div>
+
+    <div class="main-screen hidden" id="mainScreen">
+      <img src="bg.png" alt="Background" class="main-bg">
+
+      <div class="ticker-wrapper" id="tickerWrapper">
+        <div class="ticker-bg"></div>
+        <div class="ticker">
+          <div class="ticker-track" id="mainTickerTrack">
+            <span class="ticker-text">Документ оновлено о 17:40 | 13.03.2026 • Документ оновлено о 17:40 | 13.03.2026 •</span>
+            <span class="ticker-text">Документ оновлено о 17:40 | 13.03.2026 • Документ оновлено о 17:40 | 13.03.2026 •</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-area" id="cardArea">
+        <div class="card" id="card">
+          <div class="face front">
+            <img src="card_front.png" alt="Front card" class="card-face-img">
+          </div>
+          <div class="face back">
+            <img src="card_back.png" alt="Back card" class="card-face-img">
+          </div>
+        </div>
+      </div>
+
+      <div class="plus-btn" id="plusBtn" aria-label="Open actions"></div>
+
+      <div class="plus-menu-layer hidden" id="plusMenuLayer">
+        <div class="plus-menu-dim"></div>
+        <img src="menu-plus.png" alt="Меню плюс" class="plus-menu-image">
+        <button class="plus-menu-close" id="plusMenuClose" aria-label="Закрити меню"></button>
+        <button class="plus-menu-btn plus-menu-view" id="viewItem" aria-label="Переглянути документ"></button>
+        <button class="plus-menu-btn plus-menu-pdf" id="pdfItem" aria-label="Завантажити PDF"></button>
+        <button class="plus-menu-btn plus-menu-refresh" id="refreshItem" aria-label="Оновити документ"></button>
+      </div>
+
+      <div class="update-layer hidden" id="updateLayer">
+        <div class="update-dim"></div>
+        <img src="onovyty_frame.png" alt="Update frame" class="update-frame">
+        <button class="update-confirm-btn" id="updateConfirmBtn" aria-label="Оновити документ"></button>
+        <button class="update-cancel-btn" id="updateCancelBtn" aria-label="Скасувати"></button>
+      </div>
+    </div>
+
+    <div class="plain-screen hidden" id="servicesScreen">
+      <img src="services.png" alt="Services">
+    </div>
+
+    <div class="plain-screen hidden" id="jobsScreen">
+      <img src="jobs.png" alt="Jobs">
+    </div>
+
+    <div class="plain-screen hidden" id="menuScreen">
+      <img src="menu.png" alt="Menu">
+    </div>
+
+    <div class="document-screen hidden" id="documentScreen">
+      <img src="document.png" alt="Document">
+      <div class="document-swipe-zone" id="documentSwipeZone"></div>
+
+      <div class="document-ticker-bg"></div>
+      <div class="document-ticker">
+        <div class="ticker-track" id="documentTickerTrack">
+          <span class="ticker-text">Документ оновлено о 14:47 | 14.03.2026 • Документ оновлено о 14:47 | 14.03.2026 •</span>
+          <span class="ticker-text">Документ оновлено о 14:47 | 14.03.2026 • Документ оновлено о 14:47 | 14.03.2026 •</span>
+        </div>
+      </div>
+
+      <div class="doc-nav-area">
+        <div class="doc-nav-btn" id="docNavHome" title="Home"></div>
+        <div class="doc-nav-btn" id="docNavServices" title="Services"></div>
+        <div class="doc-nav-btn" id="docNavJobs" title="Jobs"></div>
+        <div class="doc-nav-btn" id="docNavMenu" title="Menu"></div>
+      </div>
+    </div>
+
+    <div class="nav-area">
+      <div class="nav-btn" id="navHome" title="Home"></div>
+      <div class="nav-btn" id="navServices" title="Services"></div>
+      <div class="nav-btn" id="navJobs" title="Jobs"></div>
+      <div class="nav-btn" id="navMenu" title="Menu"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const screen = document.getElementById('screen');
+
+  const card = document.getElementById('card');
+  const cardArea = document.getElementById('cardArea');
+  const tickerWrapper = document.getElementById('tickerWrapper');
+  const loadingScreen = document.getElementById('loadingScreen');
+  const pinScreen = document.getElementById('pinScreen');
+  const pinDeleteBtn = document.getElementById('pinDeleteBtn');
+  const pinKeys = document.querySelectorAll('.pin-key[data-num]');
+  const pinDots = [
+    document.getElementById('dot0'),
+    document.getElementById('dot1'),
+    document.getElementById('dot2'),
+    document.getElementById('dot3')
+  ];
+
+  const mainScreen = document.getElementById('mainScreen');
+  const servicesScreen = document.getElementById('servicesScreen');
+  const jobsScreen = document.getElementById('jobsScreen');
+  const menuScreen = document.getElementById('menuScreen');
+  const documentScreen = document.getElementById('documentScreen');
+  const documentSwipeZone = document.getElementById('documentSwipeZone');
+
+  const updateLayer = document.getElementById('updateLayer');
+
+  const navHome = document.getElementById('navHome');
+  const navServices = document.getElementById('navServices');
+  const navJobs = document.getElementById('navJobs');
+  const navMenu = document.getElementById('navMenu');
+
+  const plusBtn = document.getElementById('plusBtn');
+  const plusMenuLayer = document.getElementById('plusMenuLayer');
+  const plusMenuClose = document.getElementById('plusMenuClose');
+  const viewItem = document.getElementById('viewItem');
+  const pdfItem = document.getElementById('pdfItem');
+  const refreshItem = document.getElementById('refreshItem');
+  const updateConfirmBtn = document.getElementById('updateConfirmBtn');
+  const updateCancelBtn = document.getElementById('updateCancelBtn');
+
+  const docNavHome = document.getElementById('docNavHome');
+  const docNavServices = document.getElementById('docNavServices');
+  const docNavJobs = document.getElementById('docNavJobs');
+  const docNavMenu = document.getElementById('docNavMenu');
+
+  const mainTickerTrack = document.getElementById('mainTickerTrack');
+  const documentTickerTrack = document.getElementById('documentTickerTrack');
+
+  let pinValue = '';
+  const correctPIN = '1234';
+  const maxPINLength = 4;
+
+  function renderPinDots() {
+    pinDots.forEach((dot, index) => {
+      dot.classList.toggle('filled', index < pinValue.length);
+    });
+  }
+
+  function resetPin() {
+    pinValue = '';
+    renderPinDots();
+  }
+
+  function unlockApp() {
+    pinScreen.classList.add('hidden');
+    showMain();
+  }
+
+  function showPinScreen() {
+    loadingScreen.classList.add('hidden');
+    pinScreen.classList.remove('hidden');
+  }
+
+  function checkPin() {
+    if (pinValue === correctPIN) {
+      unlockApp();
+    } else {
+      resetPin();
+    }
+  }
+
+  function addPinDigit(num) {
+    if (pinValue.length >= maxPINLength) return;
+    pinValue += String(num);
+    renderPinDots();
+
+    if (pinValue.length === maxPINLength) {
+      setTimeout(checkPin, 120);
+    }
+  }
+
+  function removePinDigit() {
+    if (!pinValue.length) return;
+    pinValue = pinValue.slice(0, -1);
+    renderPinDots();
+  }
+
+  pinKeys.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      addPinDigit(btn.dataset.num);
+    });
+  });
+
+  pinDeleteBtn.addEventListener('click', removePinDigit);
+
+  function hideAllScreens() {
+    loadingScreen.classList.add('hidden');
+    pinScreen.classList.add('hidden');
+    mainScreen.classList.add('hidden');
+    servicesScreen.classList.add('hidden');
+    jobsScreen.classList.add('hidden');
+    menuScreen.classList.add('hidden');
+    documentScreen.classList.add('hidden');
+    hideUpdateLayer();
+    closePlusMenu(true);
+  }
+
+  function resetCard() {
+    card.classList.remove('flipped');
+    tickerWrapper.classList.remove('flipped');
+  }
+
+  function closePlusMenu(immediate = false) {
+    plusMenuLayer.classList.remove('show');
+
+    if (immediate) {
+      plusMenuLayer.classList.add('hidden');
+      return;
+    }
+
+    setTimeout(() => {
+      if (!plusMenuLayer.classList.contains('show')) {
+        plusMenuLayer.classList.add('hidden');
+      }
+    }, 320);
+  }
+
+  function openPlusMenu() {
+    plusMenuLayer.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      plusMenuLayer.classList.add('show');
+    });
+  }
+
+  function enableDocumentMode() {
+    screen.classList.add('document-mode');
+  }
+
+  function disableDocumentMode() {
+    screen.classList.remove('document-mode');
+  }
+
+  function showUpdateLayer() {
+    updateLayer.classList.remove('hidden');
+    updateLayer.classList.add('show');
+  }
+
+  function hideUpdateLayer() {
+    updateLayer.classList.add('hidden');
+    updateLayer.classList.remove('show');
+  }
+
+  function showMain() {
+    hideAllScreens();
+    disableDocumentMode();
+    mainScreen.classList.remove('hidden');
+    hideUpdateLayer();
+    resetCard();
+    window.scrollTo(0, 0);
+  }
+
+  function showServices() {
+    hideAllScreens();
+    disableDocumentMode();
+    servicesScreen.classList.remove('hidden');
+    resetCard();
+    window.scrollTo(0, 0);
+  }
+
+  function showJobs() {
+    hideAllScreens();
+    disableDocumentMode();
+    jobsScreen.classList.remove('hidden');
+    resetCard();
+    window.scrollTo(0, 0);
+  }
+
+  function showMenu() {
+    hideAllScreens();
+    disableDocumentMode();
+    menuScreen.classList.remove('hidden');
+    resetCard();
+    window.scrollTo(0, 0);
+  }
+
+  function showDocument() {
+    hideAllScreens();
+    enableDocumentMode();
+    documentScreen.classList.remove('hidden');
+    resetCard();
+    window.scrollTo(0, 0);
+  }
+
+  function showUpdate() {
+    closePlusMenu();
+    showMain();
+    showUpdateLayer();
+  }
+
+  function formatUpdateDateTime(date = new Date()) {
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `Документ оновлено о ${hours}:${minutes} | ${day}.${month}.${year} •`;
+  }
+
+  function updateTickerText() {
+    const text = formatUpdateDateTime(new Date());
+
+    mainTickerTrack.innerHTML = `
+      <span class="ticker-text">${text} ${text}</span>
+      <span class="ticker-text">${text} ${text}</span>
+    `;
+
+    documentTickerTrack.innerHTML = `
+      <span class="ticker-text">${text} ${text}</span>
+      <span class="ticker-text">${text} ${text}</span>
+    `;
+  }
+
+  cardArea.addEventListener('click', () => {
+    if (
+      pinScreen.classList.contains('hidden') &&
+      !mainScreen.classList.contains('hidden') &&
+      updateLayer.classList.contains('hidden') &&
+      plusMenuLayer.classList.contains('hidden')
+    ) {
+      card.classList.toggle('flipped');
+      tickerWrapper.classList.toggle('flipped');
+    }
+  });
+
+  navHome.addEventListener('click', showMain);
+  navServices.addEventListener('click', showServices);
+  navJobs.addEventListener('click', showJobs);
+  navMenu.addEventListener('click', showMenu);
+
+  docNavHome.addEventListener('click', showMain);
+  docNavServices.addEventListener('click', showServices);
+  docNavJobs.addEventListener('click', showJobs);
+  docNavMenu.addEventListener('click', showMenu);
+
+  plusBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (
+      pinScreen.classList.contains('hidden') &&
+      !mainScreen.classList.contains('hidden') &&
+      updateLayer.classList.contains('hidden')
+    ) {
+      if (plusMenuLayer.classList.contains('hidden')) {
+        openPlusMenu();
+      } else {
+        closePlusMenu();
+      }
+    }
+  });
+
+  plusMenuClose.addEventListener('click', closePlusMenu);
+  viewItem.addEventListener('click', showDocument);
+
+  pdfItem.addEventListener('click', () => {
+    closePlusMenu();
+    const link = document.createElement('a');
+    link.href = 'Військово-обліковий документ.pdf';
+    link.download = 'Військово-обліковий документ.pdf';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+
+  refreshItem.addEventListener('click', showUpdate);
+
+  updateConfirmBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    updateTickerText();
+    showMain();
+  });
+
+  updateCancelBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showMain();
+  });
+
+  let docTouchStartY = 0;
+  let docTouchCurrentY = 0;
+  let docIsSwiping = false;
+
+  documentSwipeZone.addEventListener('touchstart', (e) => {
+    if (documentScreen.classList.contains('hidden')) return;
+
+    const touch = e.touches[0];
+    docTouchStartY = touch.clientY;
+    docTouchCurrentY = touch.clientY;
+    docIsSwiping = true;
+  }, { passive: true });
+
+  documentSwipeZone.addEventListener('touchmove', (e) => {
+    if (!docIsSwiping) return;
+
+    const touch = e.touches[0];
+    docTouchCurrentY = touch.clientY;
+  }, { passive: true });
+
+  documentSwipeZone.addEventListener('touchend', () => {
+    if (!docIsSwiping) return;
+
+    const deltaY = docTouchCurrentY - docTouchStartY;
+
+    if (deltaY > 70) {
+      showMain();
+    }
+
+    docIsSwiping = false;
+    docTouchStartY = 0;
+    docTouchCurrentY = 0;
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    updateTickerText();
+    closePlusMenu(true);
+    resetPin();
+    hideAllScreens();
+
+    loadingScreen.classList.remove('hidden');
+    pinScreen.classList.add('hidden');
+    mainScreen.classList.add('hidden');
+
+    setTimeout(() => {
+      showPinScreen();
+    }, 2500);
+  });
+</script>
+
+</body>
+</html>
